@@ -1,0 +1,59 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix
+np.random.seed(42)
+data = pd.DataFrame({
+    "Maths": np.random.randint(40, 100, 100),
+    "Science": np.random.randint(40, 100, 100),
+    "English": np.random.randint(40, 100, 100),
+    "History": np.random.randint(40, 100, 100),
+    "Geography": np.random.randint(40, 100, 100)
+})
+# Create target (Pass/Fail)
+data["Average"] = data.mean(axis=1)
+data["Result"] = (data["Average"] >= 60).astype(int)
+print("Dataset Sample:\n", data.head())
+print("\nAverage Marks:\n", data.mean())
+print("\nStandard Deviation:\n", data.std())
+corr = data.corr()
+plt.figure()
+sns.heatmap(corr, annot=True)
+plt.title("Correlation Heatmap")
+plt.show()
+plt.figure()
+data["Average"].hist()
+plt.title("Average Score Distribution")
+plt.show()
+
+sample = data["Average"].sample(30)
+mean = sample.mean()
+std = sample.std()
+n = len(sample)
+z_score = (mean - 60) / (std / np.sqrt(n))
+print("\nZ-Score:", z_score)
+if z_score > 1.96:
+    print("Reject Null Hypothesis")
+else:
+    print("Accept Null Hypothesis")
+X = data[["Maths", "Science", "English", "History", "Geography"]]
+y = data["Result"]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+model = LogisticRegression()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+print("\nModel Accuracy:", accuracy_score(y_test, y_pred))
+sns.heatmap(confusion_matrix(y_test, y_pred), annot=True)
+plt.title("Confusion Matrix")
+plt.show()
+new_student = [[80, 75, 70, 65, 60]]
+prediction = model.predict(scaler.transform(new_student))
+print("\nNew Student Prediction:")
+print("Pass" if prediction[0] == 1 else "Fail")
